@@ -3,30 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fitness Loot Quest v8</title>
+    <title>Fitness Loot Quest v9</title>
     <style>
         :root {
             --trainer: #888888; --food: #a2f2a2; --sport: #ffb347; --gym: #bf77f6;
             --mc-bg: #1a1a1a; --mc-xp: #3cf03c; --shield: #00e5ff;
         }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--mc-bg); color: white; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; user-select: none; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--mc-bg); color: white; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; user-select: none; -webkit-tap-highlight-color: transparent; }
         .header { width: 100%; max-width: 400px; text-align: center; margin-bottom: 20px; }
         .streak-counter { font-size: 1.5rem; margin-bottom: 5px; color: #ff4500; font-weight: bold; text-shadow: 0 0 10px #ff4500; }
         
-        /* LVL COLORS */
         .lvl-1 { color: var(--trainer); }
         .lvl-5 { color: var(--food); text-shadow: 0 0 10px var(--food); }
         .lvl-10 { color: var(--sport); text-shadow: 0 0 10px var(--sport); }
         .lvl-20 { color: var(--gym); text-shadow: 0 0 15px var(--gym); animation: enchant 3s infinite; }
 
         .xp-bar-outer { width: 100%; height: 25px; background: #000; border: 3px solid #555; border-radius: 5px; overflow: hidden; position: relative; }
-        #xp-inner { height: 100%; width: 0%; background: var(--mc-xp); transition: 0.4s; }
+        #xp-inner { height: 100%; width: 0%; background: var(--mc-xp); transition: 0.4s; box-shadow: 0 0 10px var(--mc-xp); }
 
         .card { background: #2a2a2a; border-radius: 15px; padding: 15px; width: 100%; max-width: 400px; margin-bottom: 15px; border: 1px solid #444; box-sizing: border-box; }
         h2 { margin: 0 0 10px 0; font-size: 0.9rem; color: #666; text-transform: uppercase; }
 
-        /* QUESTS */
-        .quest { padding: 14px; border-radius: 10px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center; font-weight: bold; cursor: pointer; border: 2px solid transparent; position: relative; overflow: hidden; }
+        .quest { padding: 14px; border-radius: 10px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center; font-weight: bold; cursor: pointer; border: 2px solid transparent; position: relative; overflow: hidden; transition: transform 0.1s; }
+        .quest:active { transform: scale(0.95); }
+        
         .trainer { background: rgba(136, 136, 136, 0.1); color: var(--trainer); border-color: var(--trainer); }
         .food { background: rgba(162, 242, 162, 0.1); color: var(--food); border-color: var(--food); }
         .sport { background: rgba(255, 179, 71, 0.1); color: var(--sport); border-color: var(--sport); }
@@ -34,9 +34,10 @@
         .shield-q { background: rgba(0, 229, 255, 0.15); color: var(--shield); border-color: var(--shield); border-style: dashed; }
         
         @keyframes enchant { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        .completed { filter: grayscale(1) opacity(0.2) !important; animation: none !important; }
+        .completed { filter: grayscale(1) opacity(0.2) !important; animation: none !important; border-style: dotted; }
 
-        .roll-btn { background: var(--mc-xp); color: black; border: none; padding: 15px 30px; font-weight: bold; border-radius: 8px; font-size: 1.1rem; cursor: pointer; width: 100%; margin-top: 10px; }
+        .roll-btn { background: var(--mc-xp); color: black; border: none; padding: 15px 30px; font-weight: bold; border-radius: 8px; font-size: 1.1rem; cursor: pointer; width: 100%; margin-top: 10px; box-shadow: 0 4px 0 #28a428; }
+        .roll-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #28a428; }
         .settings-btn { background: #333; color: #888; border: none; padding: 12px; border-radius: 8px; width: 100%; max-width: 400px; margin-top: 10px; }
         
         #loot-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; justify-content: center; align-items: center; }
@@ -63,7 +64,7 @@
         <div id="shield-section" style="text-align:center; padding: 10px; border: 1px solid var(--shield); border-radius: 10px; margin-bottom: 20px;">
             <p style="color:var(--shield); margin:0; font-size: 0.8rem;">🛡️ OCHRANNÝ ŠTÍT</p>
             <p style="font-size: 0.7rem; color: #aaa;">Cena: 5 plamínků</p>
-            <button id="buy-shield-btn" class="roll-btn" style="background:var(--shield); font-size: 0.9rem;" onclick="activateShield()">AKTIVOVAT NA DNES</button>
+            <button id="buy-shield-btn" class="roll-btn" style="background:var(--shield); font-size: 0.9rem; box-shadow: 0 4px 0 #0097a7;" onclick="activateShield()">AKTIVOVAT ŠTÍT</button>
         </div>
         <h2>Týdenní Plán</h2>
         <div id="planner-list"></div>
@@ -80,7 +81,7 @@
     </div>
 
     <script>
-        let state = JSON.parse(localStorage.getItem('fitnessAppV8')) || {
+        let state = JSON.parse(localStorage.getItem('fitnessAppV9')) || {
             xp: 0, level: 1, streak: 0, lastDate: "", completedQuests: [], 
             plan: { 0:['F'], 1:['T','F','G'], 2:['F','S'], 3:['T','F'], 4:['F','G'], 5:['T','F'], 6:['S'] }
         };
@@ -93,12 +94,16 @@
             'SHIELD': {name:'🛡️ ŠTÍT AKTIVNÍ',xp:0,class:'shield-q'}
         };
 
-        const audio = {
-            click: new Audio("https://actions.google.com/sounds/v1/foley/button_click.ogg"),
-            complete: new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg"),
-            levelup: new Audio("https://actions.google.com/sounds/v1/cartoon/conga_drums_hit.ogg"),
-            roll: new Audio("https://actions.google.com/sounds/v1/foley/mechanical_clock_ticks.ogg")
+        // AUDIO ENGINE - Minecraft Sounds
+        const sounds = {
+            click: new Audio("https://www.soundjay.com/buttons/sounds/button-16.mp3"),
+            glass: new Audio("https://assets.mixkit.co/active_storage/sfx/2569/2569-preview.mp3"), // "Glass Break" style
+            levelUp: new Audio("https://www.myinstants.com/media/sounds/minecraft-level-up-sound.mp3"),
+            roll: new Audio("https://www.soundjay.com/buttons/sounds/button-20.mp3")
         };
+
+        // Preload sounds
+        Object.values(sounds).forEach(s => { s.load(); s.volume = 0.5; });
 
         function init() {
             checkStreak();
@@ -114,15 +119,15 @@
             if (state.lastDate && state.lastDate !== todayStr) {
                 const lastDate = new Date(state.lastDate);
                 const diff = (new Date() - lastDate) / (1000 * 60 * 60 * 24);
-                if (diff > 1.8) state.streak = 0; // Pokud vynecháš víc jak den
+                if (diff > 1.8) state.streak = 0;
             }
         }
 
         function toggleQuest(pts, el, id) {
             const todayStr = new Date().toLocaleDateString();
-            audio.click.play();
             
             if (state.completedQuests.includes(id)) {
+                sounds.click.currentTime = 0; sounds.click.play();
                 state.xp -= pts;
                 state.completedQuests = state.completedQuests.filter(i => i !== id);
                 el.classList.remove('completed');
@@ -131,7 +136,8 @@
                     state.lastDate = "";
                 }
             } else {
-                audio.complete.play();
+                // MC Glass Break Sound
+                sounds.glass.currentTime = 0; sounds.glass.play();
                 state.xp += pts;
                 state.completedQuests.push(id);
                 el.classList.add('completed');
@@ -144,15 +150,18 @@
         }
 
         function activateShield() {
-            if (state.streak < 5) { alert("Nemáš dost plamínků! Potřebuješ aspoň 5."); return; }
+            if (state.streak < 5) { alert("Potřebuješ aspoň 5 plamínků!"); return; }
             const todayStr = new Date().toLocaleDateString();
-            const today = new Date().getDay();
-            if (state.lastDate === todayStr) { alert("Dnes už máš splněno, štít nepotřebuješ!"); return; }
+            if (state.lastDate === todayStr) { alert("Dnes už máš splněno!"); return; }
+            
+            // MC Level Up Sound (Cinkání)
+            sounds.levelUp.play();
             
             state.streak -= 5;
             state.lastDate = todayStr;
-            state.completedQuests.push(`${todayStr}-${today}-SHIELD`);
-            save(); location.reload();
+            state.completedQuests.push(`${todayStr}-${new Date().getDay()}-SHIELD`);
+            save(); 
+            setTimeout(() => location.reload(), 1000);
         }
 
         function updateUI() {
@@ -171,7 +180,6 @@
             const today = new Date().getDay();
             const todayStr = new Date().toLocaleDateString();
             
-            // Přidáme normální questy
             (state.plan[today] || []).forEach(key => {
                 const q = questTypes[key];
                 const div = document.createElement('div');
@@ -183,18 +191,17 @@
                 container.appendChild(div);
             });
 
-            // Přidáme štít, pokud je aktivní
             if (state.completedQuests.includes(`${todayStr}-${today}-SHIELD`)) {
                 const div = document.createElement('div');
                 div.className = `quest shield-q completed`;
-                div.innerHTML = `<span>🛡️ Ochranný štít aktivní</span><span>0 XP</span>`;
+                div.innerHTML = `<span>🛡️ ŠTÍT AKTIVNÍ</span><span>0 XP</span>`;
                 container.appendChild(div);
             }
         }
 
         function buildPlanner() {
             const list = document.getElementById('planner-list'); list.innerHTML = '';
-            ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'].forEach((day, i) => {
+            ['Ne', 'Po', 'Út', 'St', 'Čt', 'Pá', 'So'].forEach((day, i) => {
                 let html = `<div style="margin-bottom:10px;"><small>${day}</small><div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">`;
                 for (let key in questTypes) {
                     if (key === 'SHIELD') continue;
@@ -215,15 +222,15 @@
         }
 
         function spinWheel() {
-            audio.roll.play();
+            sounds.roll.play();
             document.getElementById('spin-btn').style.display = 'none';
             const display = document.getElementById('reward-display');
             let count = 0;
-            const itv = setInterval(() => { display.textContent = ["🥤 Kofola", "🍫 Čokoláda", "🍿 Popcorn", "❌ Nic"][count % 4]; count++; }, 100);
+            const itv = setInterval(() => { display.textContent = ["🥤 Kofola", "🍫 Čoko", "🍿 Popcorn", "❌ Nic"][count % 4]; count++; }, 100);
             setTimeout(() => {
                 clearInterval(itv);
-                audio.levelup.play();
-                display.textContent = ["🥤 Kofola", "🍫 Čokoláda", "🍿 Popcorn", "❌ Nic"][Math.floor(Math.random() * 4)];
+                sounds.levelUp.play();
+                display.textContent = ["🥤 Kofola", "🍫 Čoko", "🍿 Popcorn", "❌ Nic"][Math.floor(Math.random() * 4)];
                 document.getElementById('close-btn').style.display = 'block';
                 state.xp -= 300; state.level++; save();
             }, 2000);
@@ -231,7 +238,7 @@
 
         function toggleSettings() { const p = document.getElementById('planner'); p.style.display = p.style.display==='block'?'none':'block'; }
         function showLoot() { document.getElementById('loot-overlay').style.display = 'flex'; }
-        function save() { localStorage.setItem('fitnessAppV8', JSON.stringify(state)); }
+        function save() { localStorage.setItem('fitnessAppV9', JSON.stringify(state)); }
         init();
     </script>
 </body>
