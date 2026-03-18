@@ -3,69 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fitness Loot Quest</title>
+    <title>Fitness Loot Quest v4</title>
     <style>
         :root {
-            --common: #a2f2a2; /* Světle zelená */
-            --rare: #ffb347;   /* Oranžová */
-            --ultimate: #bf77f6; /* Fialová */
-            --mc-bg: #1a1a1a;
-            --mc-xp: #3cf03c;
+            --common: #a2f2a2; --rare: #ffb347; --ultimate: #bf77f6;
+            --mc-bg: #1a1a1a; --mc-xp: #3cf03c;
         }
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--mc-bg);
-            color: white;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            user-select: none;
+            font-family: 'Segoe UI', sans-serif; background-color: var(--mc-bg); color: white;
+            margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center;
         }
-
-        /* XP BAR */
         .header { width: 100%; max-width: 400px; text-align: center; margin-bottom: 20px; }
         .xp-bar-outer {
             width: 100%; height: 25px; background: #000; border: 3px solid #555;
             border-radius: 5px; overflow: hidden; position: relative;
         }
         #xp-inner { height: 100%; width: 0%; background: var(--mc-xp); transition: 0.4s; }
-        .level-label { color: var(--mc-xp); font-weight: bold; font-size: 1.2rem; margin-bottom: 5px; }
+        .level-label { color: var(--mc-xp); font-weight: bold; font-size: 1.5rem; text-shadow: 2px 2px #000; }
 
-        /* DASHBOARD */
         .card {
-            background: #2a2a2a; border-radius: 15px; padding: 20px;
-            width: 100%; max-width: 400px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            margin-bottom: 20px; border: 1px solid #444;
+            background: #2a2a2a; border-radius: 15px; padding: 15px;
+            width: 100%; max-width: 400px; margin-bottom: 15px; border: 1px solid #444;
         }
-        h2 { margin-top: 0; font-size: 1.1rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+        h2 { margin: 0 0 10px 0; font-size: 1rem; color: #888; text-transform: uppercase; }
 
-        /* QUEST STYLES */
         .quest {
-            padding: 15px; border-radius: 10px; margin: 10px 0;
+            padding: 12px; border-radius: 10px; margin: 8px 0;
             display: flex; justify-content: space-between; align-items: center;
-            font-weight: bold; cursor: pointer; border: 2px solid transparent;
+            font-weight: bold; cursor: pointer; border: 2px solid transparent; transition: 0.2s;
         }
-        .common { background: rgba(162, 242, 162, 0.15); color: var(--common); border-color: var(--common); }
-        .rare { background: rgba(255, 179, 71, 0.15); color: var(--rare); border-color: var(--rare); }
-        .ultimate { background: rgba(191, 119, 246, 0.15); color: var(--ultimate); border-color: var(--ultimate); }
+        .common { background: rgba(162, 242, 162, 0.1); color: var(--common); border-color: var(--common); }
+        .rare { background: rgba(255, 179, 71, 0.1); color: var(--rare); border-color: var(--rare); }
+        .ultimate { background: rgba(191, 119, 246, 0.1); color: var(--ultimate); border-color: var(--ultimate); }
         
-        .completed { filter: grayscale(1) opacity(0.3); text-decoration: line-through; pointer-events: none; }
+        .completed { filter: grayscale(0.8) opacity(0.4); border-style: dashed; }
 
-        /* SETTINGS / PLANNER */
-        .settings-btn { background: #444; color: white; border: none; padding: 10px; border-radius: 5px; margin-top: 10px; width: 100%; max-width: 400px; }
-        #planner { display: none; margin-top: 20px; width: 100%; max-width: 400px; }
-        select { background: #333; color: white; padding: 5px; border: 1px solid #555; margin: 5px 0; width: 100%; }
+        /* Loot Overlay */
+        #loot-overlay {
+            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.9); z-index: 100; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .reward-box { padding: 40px; border: 5px solid var(--ultimate); border-radius: 20px; text-align: center; background: #222; }
+        .roll-btn { background: var(--mc-xp); color: black; border: none; padding: 15px 30px; font-weight: bold; border-radius: 10px; font-size: 1.2rem; cursor: pointer; }
 
+        .settings-btn { background: #333; color: #ccc; border: none; padding: 10px; border-radius: 8px; width: 100%; max-width: 400px; margin-top: 10px; }
+        #planner { display: none; }
+        select { width: 100%; background: #444; color: white; border: none; padding: 10px; margin: 5px 0; border-radius: 5px; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="level-label">LVL <span id="lvl">1</span></div>
+        <div class="level-label">LEVEL <span id="lvl">1</span></div>
         <div class="xp-bar-outer"><div id="xp-inner"></div></div>
-        <p style="font-size: 0.8rem;">Body: <span id="xp-num">0</span> / 200 XP do odměny 🎁</p>
+        <p>XP: <span id="xp-num">0</span> / 300</p>
+        <button id="claim-btn" class="roll-btn" style="display:none; margin-top: 10px; width: 100%;" onclick="showLoot()">🎁 VYBRAT ODMĚNU!</button>
     </div>
 
     <div class="card">
@@ -73,41 +65,48 @@
         <div id="today-quests"></div>
     </div>
 
-    <div class="card" style="opacity: 0.6;">
+    <div class="card" style="opacity: 0.5;">
         <h2 id="tomorrow-name">ZÍTRA</h2>
         <div id="tomorrow-quests"></div>
     </div>
 
-    <button class="settings-btn" onclick="toggleSettings()">⚙️ NASTAVIT PLÁN</button>
+    <button class="settings-btn" onclick="toggleSettings()">⚙️ NASTAVENÍ QUESTŮ</button>
 
     <div id="planner" class="card">
         <h2>Týdenní Plánovač</h2>
         <div id="planner-list"></div>
-        <button class="settings-btn" style="background: var(--mc-xp); color: black;" onclick="savePlan()">ULOŽIT PLÁN</button>
+        <button class="roll-btn" style="width:100%; margin-top:10px;" onclick="savePlan()">ULOŽIT</button>
+    </div>
+
+    <div id="loot-overlay">
+        <div class="reward-box">
+            <h1 id="roll-status">Loot Box</h1>
+            <div id="reward-display" style="font-size: 3rem; margin: 20px 0;">❓</div>
+            <button id="spin-btn" class="roll-btn" onclick="spinWheel()">LOSOVAT!</button>
+            <button id="close-btn" class="settings-btn" style="display:none;" onclick="closeLoot()">ZAVŘÍT</button>
+        </div>
     </div>
 
     <script>
-        let state = JSON.parse(localStorage.getItem('fitnessApp')) || {
+        let state = JSON.parse(localStorage.getItem('fitnessAppV4')) || {
             xp: 0, level: 1, completedQuests: [], 
-            plan: { 0:[], 1:['C'], 2:['U','C'], 3:['C'], 4:['U','C'], 5:['C'], 6:['R','C'] }
+            plan: { 0:['C'], 1:['U','C'], 2:['R','C'], 3:['C'], 4:['U','C'], 5:['C'], 6:['R','C'] }
         };
 
         const questTypes = {
-            'C': { name: 'Common: Zdravé jídlo', xp: 20, class: 'common' },
+            'C': { name: 'Common: Jídlo/Zelenina', xp: 20, class: 'common' },
             'R': { name: 'Rare: Sport/Běh', xp: 50, class: 'rare' },
             'U': { name: 'Ultimate: Posilovna', xp: 80, class: 'ultimate' }
         };
 
+        const rewards = ["🥤 KOFOLA", "🍫 ČOKOLÁDA", "🍿 POPCORN", "❌ NIC (Zkus to příště)"];
         const days = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
 
         function init() {
-            const now = new Date();
-            const today = now.getDay();
+            const today = new Date().getDay();
             const tomorrow = (today + 1) % 7;
-
             document.getElementById('today-name').textContent = "DNES (" + days[today] + ")";
             document.getElementById('tomorrow-name').textContent = "ZÍTRA (" + days[tomorrow] + ")";
-
             renderQuests('today-quests', today, true);
             renderQuests('tomorrow-quests', tomorrow, false);
             updateUI();
@@ -121,32 +120,65 @@
                 const q = questTypes[qKey];
                 const div = document.createElement('div');
                 div.className = `quest ${q.class}`;
-                const questId = `${new Date().toLocaleDateString()}-${dayIdx}-${qKey}`;
-                if (state.completedQuests.includes(questId)) div.classList.add('completed');
+                const qId = `${new Date().toLocaleDateString()}-${dayIdx}-${qKey}`;
+                if (state.completedQuests.includes(qId)) div.classList.add('completed');
                 
                 div.innerHTML = `<span>${q.name}</span><span>+${q.xp} XP</span>`;
-                if (interactive) div.onclick = () => completeQuest(q.xp, div, questId);
+                if (interactive) div.onclick = () => toggleQuest(q.xp, div, qId);
                 container.appendChild(div);
             });
         }
 
-        function completeQuest(points, el, qId) {
-            state.xp += points;
-            state.completedQuests.push(qId);
-            if (state.xp >= 200) {
-                state.xp -= 200;
-                state.level++;
-                alert("⭐ LEVEL UP! Máš nárok na Kofolu nebo čokoládu!");
+        function toggleQuest(points, el, qId) {
+            if (state.completedQuests.includes(qId)) {
+                // UNDO - Zrušení
+                state.xp -= points;
+                state.completedQuests = state.completedQuests.filter(id => id !== qId);
+                el.classList.remove('completed');
+            } else {
+                // SPLNĚNO
+                state.xp += points;
+                state.completedQuests.push(qId);
+                el.classList.add('completed');
             }
             save();
             updateUI();
-            el.classList.add('completed');
         }
 
         function updateUI() {
-            document.getElementById('xp-inner').style.width = (state.xp / 2) + "%";
+            document.getElementById('xp-inner').style.width = (state.xp / 3) + "%";
             document.getElementById('xp-num').textContent = state.xp;
             document.getElementById('lvl').textContent = state.level;
+            document.getElementById('claim-btn').style.display = state.xp >= 300 ? 'block' : 'none';
+        }
+
+        function showLoot() { document.getElementById('loot-overlay').style.display = 'flex'; }
+
+        function spinWheel() {
+            const btn = document.getElementById('spin-btn');
+            btn.style.display = 'none';
+            const display = document.getElementById('reward-display');
+            let count = 0;
+            const interval = setInterval(() => {
+                display.textContent = rewards[count % rewards.length];
+                count++;
+            }, 100);
+
+            setTimeout(() => {
+                clearInterval(interval);
+                const final = rewards[Math.floor(Math.random() * rewards.length)];
+                display.textContent = final;
+                document.getElementById('roll-status').textContent = "TVÁ ODMĚNA:";
+                document.getElementById('close-btn').style.display = 'block';
+                
+                state.xp -= 300;
+                state.level++;
+                save();
+            }, 2000);
+        }
+
+        function closeLoot() {
+            location.reload();
         }
 
         function buildPlanner() {
@@ -158,14 +190,13 @@
                         <option value="C" ${state.plan[i].includes('C')?'selected':''}>Common (Jídlo)</option>
                         <option value="R" ${state.plan[i].includes('R')?'selected':''}>Rare (Sport)</option>
                         <option value="U" ${state.plan[i].includes('U')?'selected':''}>Ultimate (Fitko)</option>
-                    </select><br>`;
+                    </select>`;
             });
         }
 
         function savePlan() {
             days.forEach((_, i) => {
-                const vals = Array.from(document.getElementById(`day-${i}`).selectedOptions).map(o => o.value);
-                state.plan[i] = vals;
+                state.plan[i] = Array.from(document.getElementById(`day-${i}`).selectedOptions).map(o => o.value);
             });
             save();
             location.reload();
@@ -176,8 +207,7 @@
             p.style.display = p.style.display === 'block' ? 'none' : 'block';
         }
 
-        function save() { localStorage.setItem('fitnessApp', JSON.stringify(state)); }
-
+        function save() { localStorage.setItem('fitnessAppV4', JSON.stringify(state)); }
         init();
     </script>
 </body>
